@@ -1,5 +1,6 @@
 import random
 import math
+import copy
 
 class MyQueue(object):
 
@@ -209,19 +210,20 @@ class BFSNode(object):
 
 #BFSSearch.test()
 
-#广度搜索
+
+#深度搜索
 class DFSSearch(object):
     def __init__(self):
     
         self.nlist=[]
         self.nlist=['u','v','w','x','y','z']
         self.elist=[]
-        self.elist.append([0,1,0,1,0,0])
-        self.elist.append([0,0,0,0,1,0])
-        self.elist.append([0,0,0,0,1,1])
-        self.elist.append([0,1,0,0,0,0])
-        self.elist.append([0,0,0,1,0,0])
-        self.elist.append([0,0,0,0,0,1])
+        self.elist.append([None,1,None,1,None,None])
+        self.elist.append([None,None,None,None,1,None])
+        self.elist.append([None,None,None,None,1,1])
+        self.elist.append([None,1,None,None,None,None])
+        self.elist.append([None,None,None,1,None,None])
+        self.elist.append([None,None,None,None,None,1])
 
         self.time=0
         self.sortlist=[]
@@ -235,14 +237,14 @@ class DFSSearch(object):
             self.edges[i][0]=self.nodes[i]
             myList = MyList()
             for j in range(len(self.elist[i])-1,-1,-1):
-                if self.elist[i][j]==1:
+                if self.elist[i][j]!=None:
                     myList.insert(MyListNode(self.nodes[j]))
             self.edges[i][1]= myList
             
         self.strong_nodes=[]
         self.strong_elist=[]
         self.strong_edges=[]
-
+        
     def strong_digram(self):
 
         for i in range(len(self.nodes)):
@@ -309,28 +311,12 @@ class DFSSearch(object):
         self.search(None)
         self.print()
         
-    def getnextedges(self,u):
-        for i in range(len(self.edges)):
-            if self.edges[i][0].k==u.k:
-                return (self.edges[i][1]).getList()
-            
     def strong_getnextedges(self,u):
         for i in range(len(self.trans_edges)):
             if self.trans_edges[i][0].k==u.k:
                 return (self.trans_edges[i][1]).getList()
-            
-    def isedges(self,u,v):
-        for i in range(len(self.edges)):
-            if self.edges[i][0].k==u.k:
-                t = (self.edges[i][1]).getList()
-                if t!=None:
-                    for j in range(len(t)):
-                        if (t[j]).key.k==v.k:
-                            return True
-        return False
 
     def strong_search(self,u):
-
         u.color="gray"
         vs=self.strong_getnextedges(u)
         if vs!=None:
@@ -341,6 +327,33 @@ class DFSSearch(object):
                     u.child.append(vs[i].key)
                     self.strong_nodes.remove(vs[i].key)
         u.color="black"
+
+    def strong_getchilds(self,u):
+        l=[]
+        l.append(u)
+        for i in range(len(u.child)):
+            l.extend(self.strong_getchilds(u.child[i]))
+        
+        return l
+    
+    def strong_isedges(self,u,v):
+        ci=self.strong_getchilds(u)
+        cj=self.strong_getchilds(v)
+        for ii in range(len(ci)):
+            for ij in range(len(cj)):
+                if self.isedges(ci[ii],cj[ij]):
+                    return True
+        return False
+            
+    def isedges(self,u,v):
+        for i in range(len(self.edges)):
+            if self.edges[i][0].k==u.k:
+                t = (self.edges[i][1]).getList()
+                if t!=None:
+                    for j in range(len(t)):
+                        if (t[j]).key.k==v.k:
+                            return True
+        return False
 
     def search(self,u):
 
@@ -364,24 +377,12 @@ class DFSSearch(object):
         self.time=self.time+1
         u.f=self.time
         self.sortlist.append(u)
-
-    def strong_getchilds(self,u):
-        l=[]
-        l.append(u)
-        for i in range(len(u.child)):
-            l.extend(self.strong_getchilds(u.child[i]))
         
-        return l
-    
-    def strong_isedges(self,u,v):
-        ci=self.strong_getchilds(u)
-        cj=self.strong_getchilds(v)
-        for ii in range(len(ci)):
-            for ij in range(len(cj)):
-                if self.isedges(ci[ii],cj[ij]):
-                    return True
-        return False
-    
+    def getnextedges(self,u):
+        for i in range(len(self.edges)):
+            if self.edges[i][0].k==u.k:
+                return (self.edges[i][1]).getList()
+            
     def print(self):
         for i in range(len(self.nodes)):
             if self.nodes[i].parent!=None:
@@ -1118,7 +1119,7 @@ class MSRMatric(object):
     
     def floyd_warshall_makeroute(self):     #floyd算法
                     
-        l=list(self.elist)
+        l=copy.deepcopy(self.elist)
         for k in range(len(l)):            
             for i in range(len(l)):
                 for j in range(len(l)):
@@ -1147,8 +1148,8 @@ class MSRMatric(object):
     def test():
         msrMatric=MSRMatric()
         #print(msrMatric.matric_makeroute_qck())
-        print(msrMatric.matric_makeroute())
-        #print(msrMatric.floyd_warshall_makeroute())
+        #print(msrMatric.matric_makeroute())
+        print(msrMatric.floyd_warshall_makeroute())
         msrMatric.getroute(0,1,0)
         
 #MSRMatric.test()
@@ -1201,11 +1202,11 @@ class MSRJohnson(object):
         self.elist.append([2,None,-5,None,None])
         self.elist.append([None,None,None,6,None])
 
-        self.nlisttmp=list(self.nlist)
+        self.nlisttmp=copy.deepcopy(self.nlist)
         self.nlisttmp.insert(0,'0')
         self.nlistvalue=[0 for i in range(len(self.nlisttmp))]
         
-        self.elisttmp=list(self.elist)
+        self.elisttmp=copy.deepcopy(self.elist)
         self.elisttmp.insert(0,[0]*(len(self.nlist)))
         for i in range(len(self.elisttmp)):
             self.elisttmp[i].insert(0,None)
@@ -1247,4 +1248,311 @@ class MSRJohnson(object):
         msrJohnson=MSRJohnson()
         print(msrJohnson.makeroute())
 
-MSRJohnson.test()
+#MSRJohnson.test()
+
+#构造最大流，EdmondsKarp算法，基于深度搜索寻找增广路径
+class MBFEdmondsKarp(object):
+    def __init__(self):
+        self.nlist=['s','v1','v2','v3','v4','t']
+        self.elist=[]
+        self.elist.append([None,16,13,None,None,None])
+        self.elist.append([None,None,10,12,None,None])
+        self.elist.append([None,4,None,None,14,None])
+        self.elist.append([None,None,9,None,None,20])
+        self.elist.append([None,None,None,7,None,4])
+        self.elist.append([None,None,None,None,None,None])
+        self.nodes=[]
+        self.edges=[]
+        self.time=0
+        self.sortlist=[]
+        
+        self.flist=[]
+        self.clist=[]
+        
+    def makeflow(self):
+        self.flist=[[0 for i in range(len(self.nlist))] for j in range(len(self.nlist))]
+        self.clist=[[0 for i in range(len(self.nlist))] for j in range(len(self.nlist))]
+    
+        self.nodes=[]
+        for i in range(len(self.nlist)):
+            self.nodes.append(DFSNode(self.nlist[i]))
+
+        self.edges=[[0 for i in range(2)] for j in range(len(self.nodes))]
+        for i in range(len(self.edges)):
+            self.edges[i][0]=self.nodes[i]
+            myList = MyList()
+            for j in range(len(self.elist[i])-1,-1,-1):
+                if self.elist[i][j]!=None:
+                    myList.insert(MyListNode(self.nodes[j]))
+            self.edges[i][1]= myList
+
+        while self.dfssearch(None):
+            miniaddflow=float('inf')
+            addflow=0
+            v=self.nodes[len(self.nodes)-1]
+            while v!=None and v.parent!=None:
+                mi=self.nodes.index(v.parent)
+                mj=self.nodes.index(v)
+                if self.elist[mi][mj]!=None:
+                    addflow=self.elist[mi][mj]-self.flist[mi][mj]
+                else:
+                    addflow=-self.flist[mi][mj]
+
+                if addflow>0 and addflow<miniaddflow:
+                    miniaddflow=addflow
+                v=v.parent
+
+            v=self.nodes[len(self.nodes)-1]
+            while v!=None and v.parent!=None:
+                mi=self.nodes.index(v.parent)
+                mj=self.nodes.index(v)
+                self.flist[mi][mj]=self.flist[mi][mj]+miniaddflow
+                self.flist[mj][mi]=-self.flist[mi][mj]
+                v=v.parent
+
+            for i in range(len(self.nlist)):
+                self.nodes[i].color="white"
+                self.nodes[i].d=None
+                self.nodes[i].parent=None
+                
+        return self.flist
+
+    def dfssearch(self,u):
+
+        if u==None:
+            self.time=0
+            self.sortlist=[]
+            return self.dfssearch(self.nodes[0])
+
+        u.color="gray"
+        self.time=self.time+1
+        u.d=self.time
+        
+        l=[]
+        vs=self.getnextedges(u)
+        if vs!=None:
+            for i in range(len(vs)):
+                l.append(vs[i].key)
+                
+        bs=self.getbackedges(u)
+        
+        if len(bs)>0:
+            l=list(set(l).union(set(bs)))
+
+        isfind=False
+        for i in range(len(l)):
+            if l[i].color=="white":
+                addflow=0
+                mi=self.nodes.index(u)
+                mj=self.nodes.index(l[i])
+                if self.elist[mi][mj]!=None:
+                    addflow=self.elist[mi][mj]-self.flist[mi][mj]
+                else:
+                    addflow=-self.flist[mi][mj]
+                    
+                if addflow>0:
+                    l[i].parent=u
+                    if self.dfssearch(l[i]):
+                        isfind=True
+                        break;
+                        
+        u.color="black"
+        self.time=self.time+1
+        u.f=self.time
+        self.sortlist.append(u)
+        if self.nodes[len(self.nodes)-1]==u:
+            return True
+        else:
+            return isfind
+        
+    def getnextedges(self,u):
+        for i in range(len(self.edges)):
+            if self.edges[i][0].k==u.k:
+                return (self.edges[i][1]).getList()
+
+    def getbackedges(self,u):
+        l=[]
+        i=self.nodes.index(u)
+        for j in range(len(self.flist[i])):
+            if self.flist[i][j]<0:
+                l.append(self.nodes[j])
+        return l     
+
+    @staticmethod                
+    def test():
+        mbfEdmondsKarp=MBFEdmondsKarp()
+        print(mbfEdmondsKarp.makeflow())
+
+#MBFEdmondsKarp.test()
+
+#构建二分图解法
+class TwoGraph(object):
+    def __init__(self):
+        self.llist=['l1','l2','l3','l4','l5']
+        self.rlist=['r1','r2','r3','r4']
+        self.nlist=[]
+        self.nlist.extend(self.llist)
+        self.nlist.extend(self.rlist)
+        self.elist=[]
+        self.elist.append([None,None,None,None,None,1,None,None,None])
+        self.elist.append([None,None,None,None,None,1,None,1,None])
+        self.elist.append([None,None,None,None,None,None,1,1,1])
+        self.elist.append([None,None,None,None,None,None,None,1,None])
+        self.elist.append([None,None,None,None,None,None,None,1,None])
+        self.elist.append([None,None,None,None,None,None,None,None,None])
+        self.elist.append([None,None,None,None,None,None,None,None,None])
+        self.elist.append([None,None,None,None,None,None,None,None,None])
+        self.elist.append([None,None,None,None,None,None,None,None,None])
+
+    def makeflow(self):                     #使用最大流方法
+
+        mlist=copy.deepcopy(self.elist)
+        nelist=copy.deepcopy(self.nlist)
+        mlist.insert(0,[None]*len(nelist))
+        mlist.append([None]*len(nelist))
+        
+        for i in range(len(mlist)):
+            mlist[i].insert(0,None)
+            if i<len(self.llist)+1:
+                mlist[i].append(None)
+            else:
+                mlist[i].append(1)
+
+        for i in range(1,len(self.llist)+1):
+            mlist[0][i]=1
+
+        mlist[len(mlist)-1][len(mlist)-1]=None
+            
+        nelist.insert(0,'s')
+        nelist.append('t')
+
+        mbfEdmondsKarp=MBFEdmondsKarp()
+        mbfEdmondsKarp.elist=mlist
+        mbfEdmondsKarp.nlist=nelist
+        mbfEdmondsKarp.makeflow()
+
+        tnum=0
+        for i in range(len(mbfEdmondsKarp.flist[0])):
+            if mbfEdmondsKarp.flist[0][i]==1:
+                tnum=tnum+1
+
+        print(tnum)
+
+    def hungary(self):                      #匈亚利算法
+
+        cl=[None for i in range(len(self.llist))]
+        cr=[None for i in range(len(self.rlist))]
+        vl=[0 for i in range(len(self.nlist))]
+        hnum=0
+
+        for i in range(len(cl)):
+            if cl[i]==None:
+                for j in range(len(vl)):
+                    vl[j]=0
+                hnum=hnum+self.hungarydo(cl,cr,vl,i)
+
+        print(hnum)     
+        
+    def hungarydo(self,cl,cr,vl,i):
+
+        li=len(self.llist)
+        r=0
+        for j in range(len(cr)):
+            if self.elist[i][li+j]!=None:
+                if vl[li+j]==0:
+                    vl[li+j]=1
+                    if cr[j]==None:
+                        cr[j]=i
+                        cl[i]=j
+                        r=1
+                        break
+                    else:
+                        r=self.hungarydo(cl,cr,vl,cr[j])
+                        if r==1:
+                            break
+                          
+        return r
+
+    def hopcroftkarp(self):
+
+        cl=[None for i in range(len(self.llist))]
+        cr=[None for i in range(len(self.rlist))]
+        vl=[0 for i in range(len(self.nlist))]
+        dx=[-1 for i in range(len(self.llist))]
+        dy=[-1 for i in range(len(self.rlist))]
+        dis=0
+        hnum=0
+
+        while self.hopcroftkarpbfs(cl,cr,vl,dis,dx,dy):
+            for j in range(len(vl)):
+                vl[j]=0
+            for i in range(len(cl)):
+                if cl[i]==None:
+                    hnum=hnum+self.hungarydfs(cl,cr,vl,dis,dx,dy,i)
+                
+        print(hnum)
+        
+    def hungarydfs(self,cl,cr,vl,dis,dx,dy,i):
+
+        li=len(self.llist)
+        r=0
+        for j in range(len(cr)):
+            if self.elist[i][li+j]!=None and (dy[j]==dx[i]+1):
+                if vl[li+j]==0:
+                    vl[li+j]=1
+                    if cr[j]!=None and dy[j]>=dis:
+                        continue 
+                    elif cr[j]==None:
+                        cr[j]=i
+                        cl[i]=j
+                        r=1
+                        break
+                    else:
+                        r=self.hungarydfs(cl,cr,vl,dis,dx,dy,cr[j])
+                        if r==1:
+                            break  
+                          
+        return r    
+
+    def hopcroftkarpbfs(self,cl,cr,vl,dis,dx,dy):
+
+        for i in range(len(dx)):
+            dx[i]=-1
+            
+        for i in range(len(dy)):
+            dy[i]=-1         
+            
+        dis=float('inf')
+        li=len(self.llist)
+
+        myQueue=MyQueue(100)
+        for i in range(len(cl)):
+            if cl[i]==None:
+                myQueue.enqueue(i)
+                dx[i]=0
+
+        while myQueue.isempty!=True:
+            i=myQueue.dequeue()
+            if dx[i]>dis:
+                break
+            for j in range(len(cr)):
+                if self.elist[i][li+j]!=None and dy[j]==-1:
+                    dy[j]=dx[i]+1
+                    if cr[j]==None:
+                        dis=dy[j]
+                    else:
+                        #print("cr[j]:"+str(cr[j]))
+                        dx[cr[j]]=dy[j]+1
+                        myQueue.enqueue(cr[j])
+
+        return dis!=float('inf') 
+    
+    @staticmethod                
+    def test():
+        twoGraph=TwoGraph()
+        #twoGraph.makeflow()
+        twoGraph.hungary()
+        twoGraph.hopcroftkarp()
+        
+TwoGraph.test()
+
